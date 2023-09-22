@@ -63,19 +63,15 @@ const INIT_FLAGS: u32 = FUSE_ASYNC_READ | FUSE_CASE_INSENSITIVE | FUSE_VOL_RENAM
 // TODO: Add FUSE_EXPORT_SUPPORT and FUSE_BIG_WRITES (requires ABI 7.10)
 
 const fn default_init_flags(#[allow(unused_variables)] capabilities: u32) -> u32 {
-    #[cfg(not(feature = "abi-7-28"))]
-    {
-        INIT_FLAGS
-    }
+    let flags = INIT_FLAGS & capabilities;
+
+    #[cfg(feature = "abi-7-21")]
+    let flags = flags & (FUSE_DO_READDIRPLUS | FUSE_READDIRPLUS_AUTO);
 
     #[cfg(feature = "abi-7-28")]
-    {
-        let mut flags = INIT_FLAGS;
-        if capabilities & FUSE_MAX_PAGES != 0 {
-            flags |= FUSE_MAX_PAGES;
-        }
-        flags
-    }
+    let flags = flags & FUSE_MAX_PAGES;
+
+    flags
 }
 
 /// File types
